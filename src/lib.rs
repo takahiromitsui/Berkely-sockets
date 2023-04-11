@@ -54,7 +54,19 @@ pub fn accept(sockfd: i32) -> i32 {
             -1
         }
     }
-    
+}
+
+pub fn handle_client(sockfd: i32) {
+    let mut buffer = [0; 1024];
+    let res = nix::sys::socket::recv(sockfd, &mut buffer, nix::sys::socket::MsgFlags::empty());
+    match res {
+        Ok(_) => {
+            println!("Received message: {}", String::from_utf8_lossy(&buffer));
+        }
+        Err(e) => {
+            println!("Receive failed: {}", e);
+        }
+    }
 }
 
 pub fn start(my_addr: &nix::sys::socket::SockAddr) {
@@ -66,5 +78,6 @@ pub fn start(my_addr: &nix::sys::socket::SockAddr) {
     loop {
         let new_fd = accept(sockfd);
         println!("[ACCEPTED] Accepted connection from: {}", new_fd);
+        handle_client(new_fd);
     }
 }
