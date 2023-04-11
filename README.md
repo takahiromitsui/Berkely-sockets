@@ -14,6 +14,12 @@ This project implements a simple server using Rust and Berkeley sockets.
 ```
 The server listens on 127.0.0.1:8080 by default.
 
+## Example
+**The left side is a server and the right side is a client.**
+
+![Screenshot 2023-04-11 at 15 20 48](https://user-images.githubusercontent.com/78789212/231175915-328c8290-dde1-4397-b0ed-d2757223b3eb.png)
+
+
 
 ## Implementation
 ### src/main.rs
