@@ -3,6 +3,8 @@ use std::{
     thread,
 };
 
+const DISCONNECT_MESSAGE: &str = "!Disconnect";
+
 pub fn stream_socket() -> i32 {
     // AF_INET = IPv4
     let domain = nix::sys::socket::AddressFamily::Inet;
@@ -63,13 +65,22 @@ pub fn accept(sockfd: i32) -> i32 {
 
 pub fn handle_client(sockfd: i32) {
     let mut buffer = [0; 1024];
-    let res = nix::sys::socket::recv(sockfd, &mut buffer, nix::sys::socket::MsgFlags::empty());
-    match res {
-        Ok(_) => {
-            println!("Received message: {}", String::from_utf8_lossy(&buffer));
-        }
-        Err(e) => {
-            println!("Receive failed: {}", e);
+    loop {
+        let res = nix::sys::socket::recv(sockfd, &mut buffer, nix::sys::socket::MsgFlags::empty());
+        match res {
+            Ok(_) => {
+                let msg = std::str::from_utf8(&buffer).unwrap().trim_end_matches('\0');
+                println!("{}", msg);
+                if msg.contains(DISCONNECT_MESSAGE) {
+                    nix::unistd::close(sockfd).unwrap();
+                    println!("Closed connection: {}", sockfd);
+                    break;
+                }
+            }
+            Err(e) => {
+                println!("Receive failed: {}", e);
+                break;
+            }
         }
     }
 }
@@ -88,7 +99,6 @@ pub fn start(my_addr: &nix::sys::socket::SockAddr) {
         pool.execute(move || {
             handle_client(new_fd);
         });
-        handle_client(new_fd);
     }
 }
 

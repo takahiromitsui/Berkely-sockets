@@ -1,6 +1,6 @@
 use client::{connect, send_message};
 
-
+const DISCONNECT_MESSAGE: &str = "!Disconnect";
 
 fn main() {
     let my_addr = nix::sys::socket::SockAddr::new_inet(nix::sys::socket::InetAddr::new(
@@ -9,5 +9,9 @@ fn main() {
     ));
     let sockfd = client::stream_socket();
     connect(sockfd, &my_addr);
-    send_message(sockfd, "Hello from client");
+    send_message(sockfd, "Message 1 from client\n");
+    send_message(sockfd, "Message 2 from client\n");
+    send_message(sockfd, "Message 3 from client\n");
+    send_message(sockfd, "Message 4 from client\n");
+    send_message(sockfd, DISCONNECT_MESSAGE);
 }

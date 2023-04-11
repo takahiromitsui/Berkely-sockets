@@ -14,7 +14,6 @@ pub fn stream_socket() -> i32 {
     fd
 }
 
-
 pub fn connect(sockfd: i32, my_addr: &nix::sys::socket::SockAddr) -> i32 {
     let res = nix::sys::socket::connect(sockfd, my_addr);
     match res {
@@ -30,7 +29,11 @@ pub fn connect(sockfd: i32, my_addr: &nix::sys::socket::SockAddr) -> i32 {
 }
 
 pub fn send_message(sockfd: i32, message: &str) -> i32 {
-    let res = nix::sys::socket::send(sockfd, message.as_bytes(), nix::sys::socket::MsgFlags::empty());
+    let res = nix::sys::socket::send(
+        sockfd,
+        message.as_bytes(),
+        nix::sys::socket::MsgFlags::empty(),
+    );
     match res {
         Ok(_) => {
             println!("Send successful");
