@@ -42,10 +42,29 @@ pub fn listen(sockfd: i32, backlog: usize) -> i32 {
     }
 }
 
+pub fn accept(sockfd: i32) -> i32 {
+    let res = nix::sys::socket::accept(sockfd);
+    match res {
+        Ok(fd) => {
+            println!("Accept successful");
+            fd
+        }
+        Err(e) => {
+            println!("Accept failed: {}", e);
+            -1
+        }
+    }
+    
+}
+
 pub fn start(my_addr: &nix::sys::socket::SockAddr) {
     let sockfd = stream_socket();
     bind(sockfd, &my_addr);
     println!("[LISTENING] Listening on port: {}", my_addr);
     listen(sockfd, 10);
     println!("[STARTING] Server started");
+    loop {
+        let new_fd = accept(sockfd);
+        println!("[ACCEPTED] Accepted connection from: {}", new_fd);
+    }
 }
