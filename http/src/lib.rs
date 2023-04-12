@@ -123,11 +123,13 @@ pub fn handle_connection(mut stream: TcpStream) {
         None => return,
     };
     let (request_line, _headers, body) = req;
+    let is_get = request_line.starts_with("GET");
+    let is_post = request_line.starts_with("POST");
 
-    let response: String = if request_line.starts_with("GET") {
+    let response: String = if is_get {
         let path = get_path_from_request_line(&request_line).unwrap();
         fetch_html("src/views", path)
-    } else if request_line.starts_with("POST") {
+    } else if is_post {
         let json_string = get_json_from_body(&body);
         post_message_json(json_string)
     } else {
