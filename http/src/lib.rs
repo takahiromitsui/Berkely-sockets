@@ -41,6 +41,22 @@ pub fn parse_http_request(buffer: &[u8]) -> Option<(String, Vec<(String, String)
     }
 }
 
+pub fn fetch_html(root: &str, path: &str) {
+    let mut file_path = root.to_string();
+    if path == "/" {
+        file_path.push_str("/index.html");
+    } else {
+        file_path.push_str(&format!("{}.html", path));
+    }
+    // let mut file = match std::fs::File::open(file_path) {
+    //     Ok(file) => file,
+    //     Err(_) => {
+    //         return;
+    //     }
+    // };
+    println!("{}", file_path);
+}
+
 pub fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 1024];
     stream.read(&mut buffer).unwrap();
@@ -49,9 +65,23 @@ pub fn handle_connection(mut stream: TcpStream) {
         None => return,
     };
     let (request_line, headers, body) = req;
-    println!("Request line: {}", request_line);
-    println!("Headers: {:?}", headers);
-    println!("Body: {}", body);
+    // println!("Request line: {}", request_line);
+    // println!("Headers: {:?}", headers);
+    // println!("Body: {}", body);
+
+    if request_line.starts_with("GET") {
+        let mut parts = request_line.splitn(3, " ");
+        let _method = parts.next().unwrap();
+        let path = parts.next().unwrap();
+        fetch_html("src/views", path);
+    } else if request_line.starts_with("POST") {
+        let mut parts = request_line.splitn(3, " ");
+        let _method = parts.next().unwrap();
+        let path = parts.next().unwrap();
+        println!("Path: {}", path);
+    } else {
+        println!("Unknown method");
+    }
 }
 
 pub struct ThreadPool {
