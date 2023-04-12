@@ -1,5 +1,5 @@
 use std::{
-    io::Read,
+    io::{Read, Write},
     net::TcpStream,
     sync::{mpsc, Arc, Mutex},
     thread,
@@ -41,20 +41,37 @@ pub fn parse_http_request(buffer: &[u8]) -> Option<(String, Vec<(String, String)
     }
 }
 
-pub fn fetch_html(root: &str, path: &str) {
+pub fn fetch_html(root: &str, path: &str) -> String {
     let mut file_path = root.to_string();
     if path == "/" {
         file_path.push_str("/index.html");
     } else {
         file_path.push_str(&format!("{}.html", path));
     }
-    // let mut file = match std::fs::File::open(file_path) {
-    //     Ok(file) => file,
-    //     Err(_) => {
-    //         return;
-    //     }
-    // };
-    println!("{}", file_path);
+
+    let file = std::fs::read_to_string(file_path);
+    let not_found = std::fs::read_to_string(format!("{}/404.html", root));
+
+    match file {
+        Ok(body) => {
+            format!(
+                "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: {}\n\n{}",
+                body.len(),
+                body
+            )
+        }
+        Err(_) => {
+            let body = match not_found {
+                Ok(body) => body,
+                Err(_) => "404 Not Found".to_string(),
+            };
+            format!(
+                "HTTP/1.1 404 Not Found\nContent-Type: text/html\nContent-Length: {}\n\n{}",
+                body.len(),
+                body
+            )
+        }
+    }
 }
 
 pub fn handle_connection(mut stream: TcpStream) {
@@ -69,19 +86,22 @@ pub fn handle_connection(mut stream: TcpStream) {
     // println!("Headers: {:?}", headers);
     // println!("Body: {}", body);
 
-    if request_line.starts_with("GET") {
+    let response: String = if request_line.starts_with("GET") {
         let mut parts = request_line.splitn(3, " ");
         let _method = parts.next().unwrap();
         let path = parts.next().unwrap();
-        fetch_html("src/views", path);
+        fetch_html("src/views", path)
     } else if request_line.starts_with("POST") {
         let mut parts = request_line.splitn(3, " ");
         let _method = parts.next().unwrap();
         let path = parts.next().unwrap();
         println!("Path: {}", path);
+        "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 0\n\n".to_string()
     } else {
         println!("Unknown method");
-    }
+        "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 0\n\n".to_string()
+    };
+    stream.write(response.as_bytes()).unwrap();
 }
 
 pub struct ThreadPool {
