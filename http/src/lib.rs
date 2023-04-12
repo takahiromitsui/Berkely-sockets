@@ -6,7 +6,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use serde_json::{self, Value};
+use serde_json;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Message {
@@ -99,6 +99,13 @@ pub fn post_message_json(body: &str) -> String {
     )
 }
 
+pub fn get_path_from_request_line(request_line: &str) -> Option<&str> {
+    let mut parts = request_line.splitn(3, " ");
+    let _method = parts.next().unwrap();
+    let path = parts.next().unwrap();
+    Some(path)
+}
+
 pub fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 1024];
     stream.read(&mut buffer).unwrap();
@@ -109,9 +116,7 @@ pub fn handle_connection(mut stream: TcpStream) {
     let (request_line, _headers, body) = req;
 
     let response: String = if request_line.starts_with("GET") {
-        let mut parts = request_line.splitn(3, " ");
-        let _method = parts.next().unwrap();
-        let path = parts.next().unwrap();
+        let path = get_path_from_request_line(&request_line).unwrap();
         fetch_html("src/views", path)
     } else if request_line.starts_with("POST") {
         // trim the null byte
