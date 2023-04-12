@@ -83,22 +83,20 @@ pub fn fetch_html(root: &str, path: &str) -> String {
     }
 }
 
-pub fn post_message_json(body: &str){
+pub fn post_message_json(body: &str) -> String {
     let json: Message = match serde_json::from_str(body) {
         Ok(json) => json,
         Err(e) => {
             println!("Error: {}", e);
-            return;
+            return "HTTP/1.1 400 Bad Request".to_string();
         }
     };
-    // println!("json: {:?}", json);
-
-    // let message = format!("{}: {}", json.guest, json.message);
-    // let mut messages = std::fs::read_to_string("src/messages.txt").unwrap_or_else(|_| "".to_string());
-    // messages.push_str(&message);
-    // messages.push_str("\n");
-
-    // std::fs::write("src/messages.txt", messages).unwrap();
+    let response = serde_json::to_string(&json).unwrap();
+    format!(
+        "HTTP/1.1 200 OK\nContent-Type: application/json\nContent-Length: {}\n\n{}",
+        response.len(),
+        response
+    )
 }
 
 pub fn handle_connection(mut stream: TcpStream) {
@@ -108,10 +106,7 @@ pub fn handle_connection(mut stream: TcpStream) {
         Some(req) => req,
         None => return,
     };
-    let (request_line, headers, body) = req;
-    // println!("Request line: {}", request_line);
-    // println!("Headers: {:?}", headers);
-    println!("Body: {}", body);
+    let (request_line, _headers, body) = req;
 
     let response: String = if request_line.starts_with("GET") {
         let mut parts = request_line.splitn(3, " ");
@@ -120,13 +115,16 @@ pub fn handle_connection(mut stream: TcpStream) {
         fetch_html("src/views", path)
     } else if request_line.starts_with("POST") {
         // trim the null byte
-        let json_start = body.splitn(2, "\r\n\r\n").nth(1).unwrap_or("").trim().trim_end_matches('\0');
-        post_message_json(json_start);
-
-        "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 0\n\n".to_string()
+        let json_start = body
+            .splitn(2, "\r\n\r\n")
+            .nth(1)
+            .unwrap_or("")
+            .trim()
+            .trim_end_matches('\0');
+        post_message_json(json_start)
     } else {
         println!("Unknown method");
-        "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 0\n\n".to_string()
+        "HTTP/1.1 400 Bad Request".to_string()
     };
     stream.write(response.as_bytes()).unwrap();
 }
