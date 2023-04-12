@@ -106,6 +106,15 @@ pub fn get_path_from_request_line(request_line: &str) -> Option<&str> {
     Some(path)
 }
 
+pub fn get_json_from_body(body: &str) -> &str {
+    //trim the null byte
+    body.splitn(2, "\r\n\r\n")
+        .nth(1)
+        .unwrap_or("")
+        .trim()
+        .trim_end_matches('\0')
+}
+
 pub fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 1024];
     stream.read(&mut buffer).unwrap();
@@ -119,14 +128,8 @@ pub fn handle_connection(mut stream: TcpStream) {
         let path = get_path_from_request_line(&request_line).unwrap();
         fetch_html("src/views", path)
     } else if request_line.starts_with("POST") {
-        // trim the null byte
-        let json_start = body
-            .splitn(2, "\r\n\r\n")
-            .nth(1)
-            .unwrap_or("")
-            .trim()
-            .trim_end_matches('\0');
-        post_message_json(json_start)
+        let json_string = get_json_from_body(&body);
+        post_message_json(json_string)
     } else {
         println!("Unknown method");
         "HTTP/1.1 400 Bad Request".to_string()
