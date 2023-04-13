@@ -1,3 +1,5 @@
+use std::{fs::File, io::{BufReader, Read}, path::Path};
+
 pub fn stream_socket() -> i32 {
     // AF_INET = IPv4
     let domain = nix::sys::socket::AddressFamily::Inet;
@@ -45,3 +47,43 @@ pub fn send_message(sockfd: i32, message: &str) -> i32 {
         }
     }
 }
+
+pub fn send_file(sockfd: i32, file_path: &str) -> i32 {
+    let path = Path::new(file_path);
+    let mut file = match File::open(&path) {
+        Ok(file) => file,
+        Err(e) => {
+            println!("Error opening file: {}", e);
+            return -1;
+        }
+    };
+
+    let mut buffer = [0; 1024];
+    loop {
+        match file.read(&mut buffer) {
+            Ok(0) => break,
+            Ok(n) => {
+                match nix::sys::socket::send(
+                    sockfd,
+                    &buffer[0..n],
+                    nix::sys::socket::MsgFlags::empty(),
+                ) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        println!("Error sending file: {}", e);
+                        return -1;
+                    }
+                };
+            }
+            Err(e) => {
+                println!("Error reading file: {}", e);
+                return -1;
+            }
+        }
+    }
+
+    println!("File sent successfully");
+    0
+}
+    
+

@@ -1,4 +1,4 @@
-use client::{connect, send_message};
+use client::{connect, send_message, send_file};
 
 const DISCONNECT_MESSAGE: &str = "!Disconnect";
 
@@ -13,5 +13,6 @@ fn main() {
     send_message(sockfd, "Message 2 from client\n");
     send_message(sockfd, "Message 3 from client\n");
     send_message(sockfd, "Message 4 from client\n");
+    send_file(sockfd, "src/test.txt");
     send_message(sockfd, DISCONNECT_MESSAGE);
 }
