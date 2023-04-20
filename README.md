@@ -1,6 +1,10 @@
 # Network Programming with Rust
 This project implements a simple server using Rust and Berkeley sockets.
 
+# Diagram (sockets)
+![socket_diagram](https://user-images.githubusercontent.com/78789212/233333063-0a002883-0f1a-4306-841a-e07657489505.png)
+
+
 ## Run Locally
 - Clone project
 - Run server
