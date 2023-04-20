@@ -14,6 +14,7 @@ pub fn handle_tcp(server_addr: &SockAddr) {
     let pool = ThreadPool::new(4);
     let sockfd = stream_socket();
     bind(sockfd, server_addr);
+    println!("[TCP]");
     println!("[LISTENING] Listening: {}", server_addr);
     listen(sockfd, 10);
     println!("[STARTING] Server started");
@@ -35,6 +36,7 @@ pub fn handle_udp(server_addr: &SockAddr) {
     let pool = ThreadPool::new(4);
     let sockfd = datagram_socket();
     bind(sockfd, server_addr);
+    println!("[UDP]");
     println!("[LISTENING] Listening: {}", server_addr);
     println!("[STARTING] Server started");
     loop {
