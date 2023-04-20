@@ -67,15 +67,29 @@ pub fn handle_client(sockfd: i32) {
     let mut buffer = [0; 1024];
     loop {
         let res = nix::sys::socket::recv(sockfd, &mut buffer, nix::sys::socket::MsgFlags::empty());
+        // Use a String to accumulate the incoming data
+        let mut msg = String::new();
         match res {
-            Ok(_) => {
-                let msg = std::str::from_utf8(&buffer).unwrap().trim_end_matches('\0');
-                println!("{}", msg);
+            Ok(n) if n > 0 => {
+                // Append the incoming data to the message
+                msg.push_str(
+                    std::str::from_utf8(&buffer[..n])
+                        .unwrap()
+                        .trim_end_matches('\0'),
+                );
+
+                println!("Received: {}", msg);
+                // Check if the message contains the disconnect message
                 if msg.contains(DISCONNECT_MESSAGE) {
                     nix::unistd::close(sockfd).unwrap();
                     println!("Closed connection: {}", sockfd);
                     break;
                 }
+            }
+            Ok(_) => {
+                // No more data to read, or the socket is non-blocking and there is no data yet
+                // Sleep for a short time to avoid busy looping
+                std::thread::sleep(std::time::Duration::from_millis(10));
             }
             Err(e) => {
                 println!("Receive failed: {}", e);
