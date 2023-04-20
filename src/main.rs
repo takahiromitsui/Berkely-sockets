@@ -1,6 +1,7 @@
 use network_programming::{
     accept, bind, datagram_socket, handle_client, listen, stream_socket, ThreadPool,
 };
+use nix::sys::socket::SockAddr;
 
 const SERVER_PORT: u16 = 3000;
 
@@ -9,16 +10,11 @@ pub enum ProtocolType {
     UDP,
 }
 
-pub fn start(my_addr: &nix::sys::socket::SockAddr, protocol: ProtocolType) {
+pub fn handle_tcp(server_addr: &SockAddr) {
     let pool = ThreadPool::new(4);
-
-    let sockfd = match protocol {
-        ProtocolType::TCP => stream_socket(),
-        ProtocolType::UDP => datagram_socket(),
-    };
-
-    bind(sockfd, &my_addr);
-    println!("[LISTENING] Listening on port: {}", my_addr);
+    let sockfd = stream_socket();
+    bind(sockfd, server_addr);
+    println!("[LISTENING] Listening: {}", server_addr);
     listen(sockfd, 10);
     println!("[STARTING] Server started");
     loop {
@@ -35,11 +31,31 @@ pub fn start(my_addr: &nix::sys::socket::SockAddr, protocol: ProtocolType) {
     }
 }
 
+pub fn handle_udp(server_addr: &SockAddr) {
+    let pool = ThreadPool::new(4);
+    let sockfd = datagram_socket();
+    bind(sockfd, server_addr);
+    println!("[LISTENING] Listening: {}", server_addr);
+    println!("[STARTING] Server started");
+    loop {
+        pool.execute(move || {
+            handle_client(sockfd);
+        });
+    }
+}
+
+pub fn start(server_addr: &SockAddr, protocol: ProtocolType) {
+    match protocol {
+        ProtocolType::TCP => handle_tcp(server_addr),
+        ProtocolType::UDP => handle_udp(server_addr),
+    };
+}
+
 fn main() {
     let server_addr = nix::sys::socket::SockAddr::new_inet(nix::sys::socket::InetAddr::new(
         nix::sys::socket::IpAddr::V4(nix::sys::socket::Ipv4Addr::new(127, 0, 0, 1)),
         SERVER_PORT,
     ));
-    start(&server_addr, ProtocolType::TCP);
-    // start(&server_addr, ProtocolType::UDP);
+    // start(&server_addr, ProtocolType::TCP);
+    start(&server_addr, ProtocolType::UDP);
 }
