@@ -14,7 +14,9 @@ fn main() {
         SERVER_PORT,
     ));
     let sockfd = client::stream_socket();
+    println!("[BINDING] Binding client to port: {}", CLIENT_PORT);
     bind(sockfd, &client_addr);
+    println!("[CONNECTING] Connecting to server on port: {}", SERVER_PORT);
     connect(sockfd, &server_addr);
     send_message(sockfd, "Message 1 from client\n");
     send_message(sockfd, "Message 2 from client\n");
