@@ -68,7 +68,15 @@ pub fn send_tcp_message(sockfd: i32, message: &str) -> i32 {
 }
 
 pub fn send_udp_message(sockfd: &UdpSocket, server_addr: &str, message: &str) {
-    sockfd.send_to(message.as_bytes(), server_addr).unwrap();
+    let res = sockfd.send_to(message.as_bytes(), server_addr);
+    match res {
+        Ok(_) => {
+            println!("Send successful");
+        }
+        Err(e) => {
+            println!("Send failed: {}", e);
+        }
+    }
 }
 
 pub fn send_file(sockfd: i32, file_path: &str) -> i32 {
