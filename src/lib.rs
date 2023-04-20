@@ -109,6 +109,8 @@ pub fn handle_client(sockfd: i32) {
             }
             Err(e) => {
                 println!("Receive failed: {}", e);
+                nix::unistd::close(sockfd).unwrap();
+                println!("Closed connection: {}", sockfd);
                 break;
             }
         }

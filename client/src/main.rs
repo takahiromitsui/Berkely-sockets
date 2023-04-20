@@ -40,6 +40,7 @@ pub fn handle_udp(client_addr: SockAddr, server_addr: SockAddr) {
     send_udp_message(&sockfd, &server_addr.to_str(), "Message 2 from client\n");
     send_udp_message(&sockfd, &server_addr.to_str(), "Message 3 from client\n");
     send_udp_message(&sockfd, &server_addr.to_str(), "Message 4 from client\n");
+    // In UDP, since there is no connection, the socket is only used to send and receive datagrams. Once you are done with sending and receiving, you don't need to explicitly close the socket. 
     // send_udp_message(&sockfd, &server_addr.to_str(), DISCONNECT_MESSAGE);
 }
 
