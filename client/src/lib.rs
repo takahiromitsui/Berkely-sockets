@@ -1,6 +1,7 @@
 use std::{
     fs::File,
     io::{BufReader, Read},
+    net::UdpSocket,
     path::Path,
 };
 
@@ -48,7 +49,7 @@ pub fn connect(sockfd: i32, my_addr: &nix::sys::socket::SockAddr) -> i32 {
     }
 }
 
-pub fn send_message(sockfd: i32, message: &str) -> i32 {
+pub fn send_tcp_message(sockfd: i32, message: &str) -> i32 {
     let res = nix::sys::socket::send(
         sockfd,
         message.as_bytes(),
@@ -62,6 +63,18 @@ pub fn send_message(sockfd: i32, message: &str) -> i32 {
         Err(e) => {
             println!("Send failed: {}", e);
             -1
+        }
+    }
+}
+
+pub fn send_udp_message(sockfd: &UdpSocket, server_addr: &str, message: &str) {
+    let res = sockfd.send_to(message.as_bytes(), server_addr);
+    match res {
+        Ok(_) => {
+            println!("Send successful");
+        }
+        Err(e) => {
+            println!("Send failed: {}", e);
         }
     }
 }

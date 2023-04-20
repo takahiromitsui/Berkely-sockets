@@ -21,6 +21,22 @@ pub fn stream_socket() -> i32 {
     fd
 }
 
+pub fn datagram_socket() -> i32 {
+    // AF_INET = IPv4
+    let domain = nix::sys::socket::AddressFamily::Inet;
+    // SOCK_DGRAM = UDP
+    let socket_type = nix::sys::socket::SockType::Datagram;
+    // Protocol = UDP
+    let protocol = nix::sys::socket::SockProtocol::Udp;
+
+    // Additional flags
+    let flags = nix::sys::socket::SockFlag::empty();
+
+    let fd = nix::sys::socket::socket(domain, socket_type, flags, protocol).unwrap();
+    println!("Created socket with fd: {}", fd);
+    fd
+}
+
 pub fn bind(sockfd: i32, my_addr: &nix::sys::socket::SockAddr) -> i32 {
     let res = nix::sys::socket::bind(sockfd, my_addr);
     match res {
@@ -34,7 +50,7 @@ pub fn bind(sockfd: i32, my_addr: &nix::sys::socket::SockAddr) -> i32 {
         }
     }
 }
-
+// connection-oriented protocols such as TCP, not for connection less protocols like UDP.
 pub fn listen(sockfd: i32, backlog: usize) -> i32 {
     let res = nix::sys::socket::listen(sockfd, backlog);
     match res {
@@ -48,7 +64,7 @@ pub fn listen(sockfd: i32, backlog: usize) -> i32 {
         }
     }
 }
-
+// connection-oriented protocols such as TCP, not for connection less protocols like UDP.
 pub fn accept(sockfd: i32) -> i32 {
     let res = nix::sys::socket::accept(sockfd);
     match res {
@@ -93,6 +109,8 @@ pub fn handle_client(sockfd: i32) {
             }
             Err(e) => {
                 println!("Receive failed: {}", e);
+                nix::unistd::close(sockfd).unwrap();
+                println!("Closed connection: {}", sockfd);
                 break;
             }
         }
