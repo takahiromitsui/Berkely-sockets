@@ -85,23 +85,6 @@ pub fn handle_client(sockfd: i32) {
     }
 }
 
-pub fn start(my_addr: &nix::sys::socket::SockAddr) {
-    let pool = ThreadPool::new(4);
-
-    let sockfd = stream_socket();
-    bind(sockfd, &my_addr);
-    println!("[LISTENING] Listening on port: {}", my_addr);
-    listen(sockfd, 10);
-    println!("[STARTING] Server started");
-    loop {
-        let new_fd = accept(sockfd);
-        println!("[ACCEPTED] Accepted connection from: {}", new_fd);
-        pool.execute(move || {
-            handle_client(new_fd);
-        });
-    }
-}
-
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: Option<mpsc::Sender<Job>>,

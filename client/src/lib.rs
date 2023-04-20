@@ -1,4 +1,8 @@
-use std::{fs::File, io::{BufReader, Read}, path::Path};
+use std::{
+    fs::File,
+    io::{BufReader, Read},
+    path::Path,
+};
 
 pub fn stream_socket() -> i32 {
     // AF_INET = IPv4
@@ -14,6 +18,20 @@ pub fn stream_socket() -> i32 {
     let fd = nix::sys::socket::socket(domain, socket_type, flags, protocol).unwrap();
     println!("Created socket with fd: {}", fd);
     fd
+}
+
+pub fn bind(sockfd: i32, my_addr: &nix::sys::socket::SockAddr) -> i32 {
+    let res = nix::sys::socket::bind(sockfd, my_addr);
+    match res {
+        Ok(_) => {
+            println!("Bind successful");
+            0
+        }
+        Err(e) => {
+            println!("Bind failed: {}", e);
+            -1
+        }
+    }
 }
 
 pub fn connect(sockfd: i32, my_addr: &nix::sys::socket::SockAddr) -> i32 {
@@ -85,5 +103,3 @@ pub fn send_file(sockfd: i32, file_path: &str) -> i32 {
     println!("File sent successfully");
     0
 }
-    
-
