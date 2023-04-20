@@ -13,6 +13,7 @@ pub enum ProtocolType {
 }
 
 pub fn handle_tcp(client_addr: SockAddr, server_addr: SockAddr) {
+    println!("[TCP]");
     println!("[CREATING] Creating client socket");
     let sockfd = client::stream_socket();
     println!("[BINDING] Binding client: {}", client_addr);
@@ -28,6 +29,7 @@ pub fn handle_tcp(client_addr: SockAddr, server_addr: SockAddr) {
 }
 
 pub fn handle_udp(client_addr: SockAddr, server_addr: SockAddr) {
+    println!("[UDP]");
     println!("[CREATING] Creating client socket");
     println!("[BINDING] Binding client: {}", client_addr);
     let sockfd = match UdpSocket::bind(client_addr.to_str()) {
