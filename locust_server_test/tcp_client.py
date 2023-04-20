@@ -1,7 +1,7 @@
 from locust import User, task
 from gevent import socket
 
-
+DISCONNECT_MESSAGE="!Disconnect"
 class TcpClient:
     def __init__(self, host, port):
         self.host = host
@@ -23,6 +23,7 @@ class TcpTaskSet(User):
         self.client = TcpClient("127.0.0.1", 8080)
 
     def on_stop(self):
+        self.client.send(DISCONNECT_MESSAGE.encode("utf-8"))
         self.client.close()
 
     @task
