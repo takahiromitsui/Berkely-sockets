@@ -1,5 +1,5 @@
 # Network Programming with Rust
-This project implements a simple server using Rust and Berkeley sockets.
+This Rust project is a simple implementation of a server using Berkeley sockets. It contains a server and a client, and the server listens for incoming connections and handles them using worker threads in a thread pool. The implementation uses **TCP** and **UDP** sockets to handle incoming data from connected clients.
 
 # Diagram (sockets)
 ![socket_diagram](https://user-images.githubusercontent.com/78789212/233333063-0a002883-0f1a-4306-841a-e07657489505.png)
@@ -19,10 +19,14 @@ This project implements a simple server using Rust and Berkeley sockets.
 The server listens on 127.0.0.1:8080 by default.
 
 ## Example
+### TCP
 **The left side is a server and the right side is a client.**
+<img width="852" alt="Screenshot 2023-05-03 at 13 30 35" src="https://user-images.githubusercontent.com/78789212/235904607-2e86c5dc-aac1-4b13-98ff-f7941ef98149.png">
 
-![Screenshot 2023-04-11 at 15 20 48](https://user-images.githubusercontent.com/78789212/231175915-328c8290-dde1-4397-b0ed-d2757223b3eb.png)
 
+### UDP
+**The left side is a server and the right side is a client.**
+<img width="860" alt="Screenshot 2023-05-03 at 13 31 29" src="https://user-images.githubusercontent.com/78789212/235904636-bf73bea6-94de-4063-87b9-7782aee1bdce.png">
 
 
 ## Implementation
@@ -48,13 +52,17 @@ This function listens on the socket for incoming connections.
 
 This function accepts an incoming connection and returns a new file descriptor representing the connection.
 
-`handle_client`
+`handle_tcp`
 
-This function handles incoming data from a connected client. It receives data in 1024 byte chunks, prints the data to the console, and closes the connection if the data contains the disconnect message.
+This function handles incoming data from a connected client by TCP. It receives data in 1024 byte chunks, prints the data to the console, and closes the connection if the data contains the disconnect message.
+
+`handle_udp`
+
+This function handles incoming data from a connected client by UDP. It receives data in 1024 byte chunks, prints the data to the console, and closes the connection if the data contains the disconnect message.
 
 `start`
 
-This function starts the server. It creates a new ThreadPool object to handle incoming connections, creates a new socket, binds the socket to the server's address, and listens on the socket for incoming connections. For each incoming connection, it accepts the connection and passes the connection's file descriptor to a worker thread in the thread pool. The worker thread calls the handle_client function to handle the connection.
+This function starts the server. It creates a new ThreadPool object to handle incoming connections, creates a new socket, binds the socket to the server's address, and listens on the socket for incoming connections. For each incoming connection, it accepts the connection and passes the connection's file descriptor to a worker thread in the thread pool. The worker thread calls the handle_tcp or handle_udp function to handle the connection.
 
 `ThreadPool`
 
